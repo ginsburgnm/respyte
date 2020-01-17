@@ -11,3 +11,4 @@ haven't you ever thought "Hey I'd like a Postman like client, but I really reall
 super basic TUI for testing REST endpoint. Literally built it in like .. an hour.. I might have spent more time on the name.. (probably bugs)
 
 anywho..
+`pip install respyte`

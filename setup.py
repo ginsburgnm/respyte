@@ -11,6 +11,7 @@ setup(
         'asciimatics>=1.11.0',
         'PyYAML>=5.3',
         'requests>=2.22.0',
+        'ConfigArgParse>-1.0'
     ],
     extras_require={
         'testing': ["mock", "tox"]

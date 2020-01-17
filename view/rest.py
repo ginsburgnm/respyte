@@ -103,7 +103,11 @@ class RestView(Frame):
             headers = json.loads(self.data['req_headers']) if self.data['req_headers'] else {}
             if 'Authorization' in headers:
                 try:
-                    headers['Authorization'] = custom_auth(headers['Authorization'])
+                    headers['Authorization'] = custom_auth(headers['Authorization'],
+                                                           self.data['url'],
+                                                           data,
+                                                           headers,
+                                                           )
                 except ImportError:
                     pass
             self.req_headers.value = json.dumps(headers, indent=2, sort_keys=True)
@@ -119,8 +123,8 @@ class RestView(Frame):
         except Exception as err: # pylint: disable=broad-except
             self.scene.add_effect(PopUpDialog(self.screen, str(err), ["Ok"]))
 
-def custom_auth(library):
+def custom_auth(library, *args):
     """Imports and runs 'library'"""
     split_lib = library.split(".")
     imported = __import__(split_lib[0], fromlist=[split_lib[1]])
-    return getattr(imported, split_lib[1])()
+    return getattr(imported, split_lib[1])(*args)

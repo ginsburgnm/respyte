@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Main view of pyrates"""
+"""Main view of respyte"""
 import json
 import re
 import yaml
@@ -27,7 +27,7 @@ class RestView(Frame):
                                        screen.width,
                                        hover_focus=True,
                                        can_scroll=False,
-                                       title="Pyrates")
+                                       title="Respyte")
 
         self.set_theme("monochrome")
         # Create the form for displaying the list of contacts.

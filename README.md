@@ -1,5 +1,5 @@
-# Pyrates
-The name comes from Py - REST if you say it fast enough it kinda sounds like Pirates (with a lisp)... sooo pyrates
+# resPYte
+Ha, rest -> respite but in python resPYte .. ha..
 
 # WHY
 haven't you ever thought "Hey I'd like a Postman like client, but I really really really don't wanna install node because like... why should I? also I don't need a GUI I have a terminal!"?

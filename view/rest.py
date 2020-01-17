@@ -21,7 +21,7 @@ def validate(test_url):
 
 class RestView(Frame):
     """This is the rest composition menu"""
-    def __init__(self, screen):
+    def __init__(self, screen, parsed_args):
         super(RestView, self).__init__(screen,
                                        screen.height,
                                        screen.width,
@@ -29,7 +29,8 @@ class RestView(Frame):
                                        can_scroll=False,
                                        title="Respyte")
 
-        self.set_theme("monochrome")
+        theme = parsed_args.color_scheme
+        self.set_theme(theme)
         # Create the form for displaying the list of contacts.
         url_layout = Layout([10, 1, 100])
         self.add_layout(url_layout)
@@ -100,6 +101,11 @@ class RestView(Frame):
             data = json.loads(self.data['req_params']) if self.data['req_params'] else {}
             self.request.value = json.dumps(data, indent=2, sort_keys=True)
             headers = json.loads(self.data['req_headers']) if self.data['req_headers'] else {}
+            if 'Authorization' in headers:
+                try:
+                    headers['Authorization'] = custom_auth(headers['Authorization'])
+                except ImportError:
+                    pass
             self.req_headers.value = json.dumps(headers, indent=2, sort_keys=True)
             # req = requests.get(self.data['url'], data=data)
             method = self.data['method'] if self.data['method'] else 'GET'
@@ -112,3 +118,9 @@ class RestView(Frame):
             self.screen.refresh()
         except Exception as err: # pylint: disable=broad-except
             self.scene.add_effect(PopUpDialog(self.screen, str(err), ["Ok"]))
+
+def custom_auth(library):
+    """Imports and runs 'library'"""
+    split_lib = library.split(".")
+    imported = __import__(split_lib[0], fromlist=[split_lib[1]])
+    return getattr(imported, split_lib[1])()

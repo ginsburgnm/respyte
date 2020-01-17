@@ -12,3 +12,9 @@ super basic TUI for testing REST endpoint. Literally built it in like .. an hour
 
 anywho..
 `pip install respyte`
+
+# Authorization
+if your endpoint needs some generated on the fly string; create a python file with the logic, in your request headers for 'Authorization' pass the value of the filename and function seperated like a dot (import string)
+
+# Color schemes
+I'm just using asciimatics built in colorschemes

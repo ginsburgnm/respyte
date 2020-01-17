@@ -48,7 +48,7 @@ class RestView(Frame):
         url_layout.add_widget(Divider(), 2)
         req_layout = Layout([20, 1, 50], fill_frame=True)
         self.add_layout(req_layout)
-        self.request = TextBox(screen.height // 4,
+        self.request = TextBox(screen.height // 4 * 3 - 7,
                                label="Body Params",
                                name="req_params",
                                line_wrap=True,
@@ -74,7 +74,7 @@ class RestView(Frame):
                                     )
         req_layout.add_widget(self.resp_headers, 2)
         req_layout.add_widget(Divider(), 2)
-        self.response = TextBox(screen.height // 4,
+        self.response = TextBox(screen.height // 4 * 3 - 7,
                                 label="Response body",
                                 name="response",
                                 line_wrap=True,
@@ -110,7 +110,7 @@ class RestView(Frame):
                                                            )
                 except ImportError:
                     pass
-            self.req_headers.value = json.dumps(headers, indent=2, sort_keys=True)
+            # self.req_headers.value = json.dumps(headers, indent=2, sort_keys=True)
             # req = requests.get(self.data['url'], data=data)
             method = self.data['method'] if self.data['method'] else 'GET'
             req = requests.request(method,

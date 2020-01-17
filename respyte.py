@@ -41,4 +41,5 @@ def main():
             last_scene = err.scene
 
 if __name__ == "__main__":
+    sys.path.append('.')
     main()

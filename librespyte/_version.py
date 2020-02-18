@@ -42,8 +42,8 @@ def get_config():
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = ""
-    cfg.parentdir_prefix = "view"
-    cfg.versionfile_source = "view/_version.py"
+    cfg.parentdir_prefix = "librespyte"
+    cfg.versionfile_source = "librespyte/_version.py"
     cfg.verbose = False
     return cfg
 

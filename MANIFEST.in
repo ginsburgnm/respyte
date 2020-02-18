@@ -1,2 +1,2 @@
 include versioneer.py
-include view/_version.py
+include librespyte/_version.py

@@ -6,7 +6,7 @@ import configargparse
 from asciimatics.scene import Scene
 from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError
-from view.rest import RestView
+from librespyte.rest import RestView
 
 def parse():
     """adds and parses arguments"""

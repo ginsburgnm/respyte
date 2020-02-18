@@ -4,9 +4,11 @@ import json
 import re
 import yaml
 import requests
+import urllib3
 from asciimatics.widgets import Button, Divider, DropdownList, Frame, Layout, Text, \
     TextBox, VerticalDivider, PopUpDialog
 from asciimatics.exceptions import  StopApplication
+urllib3.disable_warnings()
 
 def validate(test_url):
     """ensures url is valid"""
@@ -116,7 +118,9 @@ class RestView(Frame):
             req = requests.request(method,
                                    self.data['url'],
                                    data=data,
-                                   headers=headers)
+                                   headers=headers,
+                                   verify=False
+                                   )
             self.resp_headers.value = yaml.dump(dict(req.headers), allow_unicode=True)
             self.response.value = yaml.dump(req.json(), allow_unicode=True)
             self.screen.refresh()

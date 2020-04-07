@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Main view of respyte"""
+from os import makedirs, path
 import json
 import re
 import yaml
 import requests
 import urllib3
 from asciimatics.widgets import Button, Divider, DropdownList, Frame, Layout, Text, \
-    TextBox, VerticalDivider, PopUpDialog
+    TextBox, VerticalDivider, PopUpDialog, PopupMenu
 from asciimatics.exceptions import  StopApplication
 urllib3.disable_warnings()
+
+CONFIG_DIRECTORY = path.expanduser(path.join("~", ".config", "respyte"))
+HISTORY_FILE = path.join(CONFIG_DIRECTORY, "history.json")
 
 def validate(test_url):
     """ensures url is valid"""
@@ -34,16 +38,28 @@ class RestView(Frame):
         theme = parsed_args.color_scheme
         self.set_theme(theme)
         # Create the form for displaying the list of contacts.
+        history_layout = Layout([1])
+        self.add_layout(history_layout)
+        self.data['history'] = 0
+        history_layout.add_widget(DropdownList(
+            self._history(), label="History",
+            name="history",
+            on_change=self._populate), 0)
+        history_layout.add_widget(Divider())
+
         url_layout = Layout([10, 1, 100])
         self.add_layout(url_layout)
-        url_layout.add_widget(DropdownList(
+        self.screen_holder = screen
+        self.method = DropdownList(
             [("GET", "GET"), ("POST", "POST"), ("PUT", "PUT"),
              ("PATCH", "PATCH"), ("DELETE", "DELETE")],
-            name="method"), 0)
+            name="method")
+        url_layout.add_widget(self.method, 0)
         url_layout.add_widget(VerticalDivider(), 1)
-        url_layout.add_widget(Text(label="Url: ",
+        self.url = Text(label="Url: ",
                                    validator=validate,
-                                   name="url"), 2)
+                                   name="url")
+        url_layout.add_widget(self.url, 2)
 
         url_layout.add_widget(Divider())
         url_layout.add_widget(Divider(), 1)
@@ -93,6 +109,29 @@ class RestView(Frame):
         button_layout.add_widget(Button("Quit", self._quit), 2)
         self.fix()
 
+    def _history(self):
+        """Show history"""
+        with open(HISTORY_FILE, 'r') as history_file:
+            lines = history_file.readlines()
+            options = []
+            index = 0
+            for line in lines:
+                options.append((line, index))
+                index += 1
+            return options
+
+    def _populate(self):
+        """populate information"""
+        self.save()
+        with open(HISTORY_FILE, 'r') as history_file:
+            json_obj = json.loads(history_file.readlines()[self.data['history']])
+        self.request.value = str(json_obj['data'])
+        self.req_headers.value = str(json_obj['headers'])
+        self.url.value = json_obj['url']
+        self.method.value = json_obj['method']
+        self.screen.refresh()
+        self.fix()
+
     @staticmethod
     def _quit():
         raise StopApplication("User pressed quit")
@@ -115,6 +154,11 @@ class RestView(Frame):
             # self.req_headers.value = json.dumps(headers, indent=2, sort_keys=True)
             # req = requests.get(self.data['url'], data=data)
             method = self.data['method'] if self.data['method'] else 'GET'
+            history = {"method": method, "url": self.data['url'],
+                       "data": data, "headers": headers}
+            makedirs(CONFIG_DIRECTORY, exist_ok=True)
+            with open(HISTORY_FILE, "a+") as history_file:
+                history_file.write(json.dumps(history))
             req = requests.request(method,
                                    self.data['url'],
                                    data=data,

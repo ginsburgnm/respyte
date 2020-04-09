@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """Main view of respyte"""
-from os import makedirs, path
+from os import path, remove
 import json
 import re
 import yaml
 import requests
 import urllib3
 from asciimatics.widgets import Button, Divider, DropdownList, Frame, Layout, Text, \
-    TextBox, VerticalDivider, PopUpDialog, PopupMenu
-from asciimatics.exceptions import  StopApplication
+    TextBox, VerticalDivider, PopUpDialog
+from asciimatics.exceptions import  StopApplication, NextScene
 urllib3.disable_warnings()
 
 CONFIG_DIRECTORY = path.expanduser(path.join("~", ".config", "respyte"))
 HISTORY_FILE = path.join(CONFIG_DIRECTORY, "history.json")
+SCRATCH_FILE = path.join(CONFIG_DIRECTORY, "scratch.json")
 
 def validate(test_url):
     """ensures url is valid"""
@@ -31,22 +32,13 @@ class RestView(Frame):
         super(RestView, self).__init__(screen,
                                        screen.height,
                                        screen.width,
+                                       on_load=self._populate,
                                        hover_focus=True,
                                        can_scroll=False,
                                        title="Respyte")
 
         theme = parsed_args.color_scheme
         self.set_theme(theme)
-        # Create the form for displaying the list of contacts.
-        history_layout = Layout([1])
-        self.add_layout(history_layout)
-        self.data['history'] = 0
-        history_layout.add_widget(DropdownList(
-            self._history(), label="History",
-            name="history",
-            on_change=self._populate), 0)
-        history_layout.add_widget(Divider())
-
         url_layout = Layout([10, 1, 100])
         self.add_layout(url_layout)
         self.screen_holder = screen
@@ -57,8 +49,8 @@ class RestView(Frame):
         url_layout.add_widget(self.method, 0)
         url_layout.add_widget(VerticalDivider(), 1)
         self.url = Text(label="Url: ",
-                                   validator=validate,
-                                   name="url")
+                        validator=validate,
+                        name="url")
         url_layout.add_widget(self.url, 2)
 
         url_layout.add_widget(Divider())
@@ -106,29 +98,28 @@ class RestView(Frame):
         button_layout.add_widget(Divider(), 1)
         button_layout.add_widget(Divider(), 2)
         button_layout.add_widget(Button("Send it", self._send), 0)
+        button_layout.add_widget(Button("History", self._history), 1)
         button_layout.add_widget(Button("Quit", self._quit), 2)
+        self._populate()
         self.fix()
 
     def _history(self):
         """Show history"""
-        with open(HISTORY_FILE, 'r') as history_file:
-            lines = history_file.readlines()
-            options = []
-            index = 0
-            for line in lines:
-                options.append((line, index))
-                index += 1
-            return options
+        raise NextScene("History")
 
     def _populate(self):
         """populate information"""
         self.save()
-        with open(HISTORY_FILE, 'r') as history_file:
-            json_obj = json.loads(history_file.readlines()[self.data['history']])
-        self.request.value = str(json_obj['data'])
-        self.req_headers.value = str(json_obj['headers'])
-        self.url.value = json_obj['url']
-        self.method.value = json_obj['method']
+        if path.isfile(SCRATCH_FILE) and path.isfile(HISTORY_FILE):
+            with open(SCRATCH_FILE, 'r') as scratch_file:
+                selection = json.loads(scratch_file.read())["history"]
+            remove(SCRATCH_FILE)
+            with open(HISTORY_FILE, 'r') as history_file:
+                json_obj = json.loads(history_file.readlines()[selection])
+                self.request.value = json.dumps(json_obj['data'])
+                self.req_headers.value = json.dumps(json_obj['headers'])
+                self.url.value = json_obj['url']
+                self.method.value = json_obj['method']
         self.screen.refresh()
         self.fix()
 
@@ -142,7 +133,7 @@ class RestView(Frame):
             data = json.loads(self.data['req_params']) if self.data['req_params'] else {}
             self.request.value = json.dumps(data, indent=2, sort_keys=True)
             headers = json.loads(self.data['req_headers']) if self.data['req_headers'] else {}
-            if 'Authorization' in headers:
+            if 'Authorization' in headers and len(headers['Authorization'].split('.')) > 1:
                 try:
                     headers['Authorization'] = custom_auth(headers['Authorization'],
                                                            self.data['url'],
@@ -156,9 +147,6 @@ class RestView(Frame):
             method = self.data['method'] if self.data['method'] else 'GET'
             history = {"method": method, "url": self.data['url'],
                        "data": data, "headers": headers}
-            makedirs(CONFIG_DIRECTORY, exist_ok=True)
-            with open(HISTORY_FILE, "a+") as history_file:
-                history_file.write(json.dumps(history))
             req = requests.request(method,
                                    self.data['url'],
                                    data=data,
@@ -166,7 +154,24 @@ class RestView(Frame):
                                    verify=False
                                    )
             self.resp_headers.value = yaml.dump(dict(req.headers), allow_unicode=True)
-            self.response.value = yaml.dump(req.json(), allow_unicode=True)
+            try:
+                self.response.value = yaml.dump(req.json(), allow_unicode=True)
+                lines = []
+                with open(HISTORY_FILE, "r") as history_file:
+                    seen = set()
+                    lines = []
+                    for line in history_file.readlines():
+                        if line not in seen:
+                            seen.add(line)
+                            lines.append(line)
+                if history not in lines:
+                    lines.append(json.dumps(history))
+                with open(HISTORY_FILE, "w") as history_file:
+                    for line in lines:
+                        history_file.write(line)
+
+            except json.JSONDecodeError:
+                self.response.value = req.text
             self.screen.refresh()
         except Exception as err: # pylint: disable=broad-except
             self.scene.add_effect(PopUpDialog(self.screen, str(err), ["Ok"]))

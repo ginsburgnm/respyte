@@ -7,6 +7,7 @@ from asciimatics.scene import Scene
 from asciimatics.screen import Screen
 from asciimatics.exceptions import ResizeScreenError
 from librespyte.rest import RestView
+from librespyte.history import HistoryView
 
 def parse():
     """adds and parses arguments"""
@@ -25,7 +26,12 @@ def parse():
 def respyte_tui(screen, scene, parsed_args):
     """start playing tui scenes"""
     scenes = [
-        Scene([RestView(screen, parsed_args)], -1, name="Main"),
+        Scene([
+            RestView(screen, parsed_args)
+        ], -1, name="Main"),
+        Scene([
+            HistoryView(screen, parsed_args)
+        ], -1, name="History"),
     ]
     screen.play(scenes, stop_on_resize=True, start_scene=scene, allow_int=True)
 

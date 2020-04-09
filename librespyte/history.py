@@ -3,7 +3,7 @@
 from os import makedirs, path
 import json
 from asciimatics.widgets import Button, Divider, ListBox, Frame, Layout
-from asciimatics.exceptions import  StopApplication, NextScene
+from asciimatics.exceptions import NextScene
 
 CONFIG_DIRECTORY = path.expanduser(path.join("~", ".config", "respyte"))
 HISTORY_FILE = path.join(CONFIG_DIRECTORY, "history.json")
@@ -53,13 +53,10 @@ class HistoryView(Frame):
             options = []
             index = 0
             for line in lines:
-                options.append((json.dumps(json.loads(line)), index))
+                if line.strip():
+                    options.append((json.dumps(json.loads(line)), index))
                 index += 1
             return options
-
-    @staticmethod
-    def _quit():
-        raise StopApplication("User pressed quit")
 
     @staticmethod
     def _cancel():

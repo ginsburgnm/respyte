@@ -125,6 +125,17 @@ class RestView(Frame):
 
     @staticmethod
     def _quit():
+        history = []
+        with open(HISTORY_FILE, 'r') as history_file:
+            for line in history_file.readlines():
+                if line.strip():
+                    history.append(line)
+        history = list(set(history))
+        with open(HISTORY_FILE, 'w') as history_file:
+            for line in history:
+                history_file.write('\n')
+                history_file.write(line)
+
         raise StopApplication("User pressed quit")
 
     def _send(self):
@@ -156,19 +167,9 @@ class RestView(Frame):
             self.resp_headers.value = yaml.dump(dict(req.headers), allow_unicode=True)
             try:
                 self.response.value = yaml.dump(req.json(), allow_unicode=True)
-                lines = []
-                with open(HISTORY_FILE, "r") as history_file:
-                    seen = set()
-                    lines = []
-                    for line in history_file.readlines():
-                        if line not in seen:
-                            seen.add(line)
-                            lines.append(line)
-                if history not in lines:
-                    lines.append(json.dumps(history))
-                with open(HISTORY_FILE, "w") as history_file:
-                    for line in lines:
-                        history_file.write(line)
+                with open(HISTORY_FILE, "a+") as history_file:
+                    history_file.write('\n')
+                    history_file.write(json.dumps(history))
 
             except json.JSONDecodeError:
                 self.response.value = req.text

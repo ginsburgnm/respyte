@@ -9,7 +9,7 @@ import urllib3
 from asciimatics.widgets import Button, Divider, DropdownList, Frame, Layout, Text, \
     TextBox, VerticalDivider, PopUpDialog
 from asciimatics.exceptions import  StopApplication, NextScene
-urllib3.disable_warnings()
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 CONFIG_DIRECTORY = path.expanduser(path.join("~", ".config", "respyte"))
 HISTORY_FILE = path.join(CONFIG_DIRECTORY, "history.json")
@@ -117,7 +117,7 @@ class RestView(Frame):
             with open(HISTORY_FILE, 'r') as history_file:
                 json_obj = json.loads(history_file.readlines()[selection])
                 self.request.value = json.dumps(json_obj['data'])
-                self.req_headers.value = json.dumps(json_obj['headers'])
+                self.req_headers.value = yaml.dump(json_obj['headers'])
                 self.url.value = json_obj['url']
                 self.method.value = json_obj['method']
         self.screen.refresh()
@@ -143,7 +143,7 @@ class RestView(Frame):
             self.save()
             data = json.loads(self.data['req_params']) if self.data['req_params'] else {}
             self.request.value = json.dumps(data, indent=2, sort_keys=True)
-            headers = json.loads(self.data['req_headers']) if self.data['req_headers'] else {}
+            headers = yaml.load(self.data['req_headers']) if self.data['req_headers'] else {}
             if 'Authorization' in headers and len(headers['Authorization'].split('.')) > 1:
                 try:
                     headers['Authorization'] = custom_auth(headers['Authorization'],

@@ -104,11 +104,11 @@ class RestView(Frame):
         req_layout.add_widget(self.resp_headers, 2)
         req_layout.add_widget(Divider(), 2)
         self.response = Pager(screen.height // 4 * 3 - 7,
-                                label="Response body",
-                                name="response",
-                                line_wrap=True,
-                                as_string=True,
-                                )
+                              label="Response body",
+                              name="response",
+                              line_wrap=True,
+                              as_string=True,
+                              )
         req_layout.add_widget(self.response, 2)
 
         button_layout = Layout([1, 1, 1])
@@ -145,7 +145,7 @@ class RestView(Frame):
                 selection = json.loads(scratch_file.read())["history"]
             remove(SCRATCH_FILE)
             with open(HISTORY_FILE, 'r') as history_file:
-                json_obj = json.loads(history_file.readlines()[selection])
+                json_obj = json.loads(history_file.read())['history'][selection]
                 self.request.value = yaml.dump(json_obj['data'])
                 self.req_headers.value = yaml.dump(json_obj['headers'])
                 self.url.value = json_obj['url']
@@ -197,9 +197,11 @@ class RestView(Frame):
             self.resp_headers.value = yaml.dump(dict(req.headers), allow_unicode=True)
             try:
                 self.response.value = yaml.dump(req.json(), allow_unicode=True)
-                with open(HISTORY_FILE, "a+") as history_file:
-                    history_file.write('\n')
-                    history_file.write(json.dumps(history))
+                with open(HISTORY_FILE, 'r') as history_file:
+                    current_history = json.loads(history_file.read())
+                current_history['history'].append(history)
+                with open(HISTORY_FILE, "w") as history_file:
+                    json.dump(current_history, history_file)
 
             except json.JSONDecodeError:
                 self.response.value = req.text

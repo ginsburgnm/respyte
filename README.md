@@ -1,3 +1,5 @@
+[![CodeQL](https://github.com/ginsburgnm/respyte/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ginsburgnm/respyte/actions/workflows/codeql-analysis.yml)
+
 # resPYte
 Ha, rest -> respite but in python resPYte .. ha..
 

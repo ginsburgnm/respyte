@@ -55,11 +55,9 @@ class RestView(Frame):
                                        can_scroll=False,
                                        title="Respyte")
 
-        self.theme = parsed_args.color_scheme
-        self.set_theme(self.theme)
+        self.set_theme(parsed_args.color_scheme)
         url_layout = Layout([10, 1, 100])
         self.add_layout(url_layout)
-        self.screen_holder = screen
         self.method = DropdownList(
             [("GET", "GET"), ("POST", "POST"), ("PUT", "PUT"),
              ("PATCH", "PATCH"), ("DELETE", "DELETE")],
@@ -111,14 +109,25 @@ class RestView(Frame):
                               )
         req_layout.add_widget(self.response, 2)
 
-        button_layout = Layout([1, 1, 1])
+        button_layout = Layout([1, 2, 2, 1, 1])
         self.add_layout(button_layout)
         button_layout.add_widget(Divider())
         button_layout.add_widget(Divider(), 1)
         button_layout.add_widget(Divider(), 2)
-        button_layout.add_widget(Button("Send it <F3>", self._send), 0)
-        button_layout.add_widget(Button("History <F2>", self._history), 1)
-        button_layout.add_widget(Button("Quit <ESC>", self._quit), 2)
+        button_layout.add_widget(Divider(), 3)
+        button_layout.add_widget(Divider(), 4)
+        button_layout.add_widget(Button("[Send it <F3>]",
+                                        self._send,
+                                        add_box=False
+                                        ), 1)
+        button_layout.add_widget(Button("[History <F2>]",
+                                        self._history,
+                                        add_box=False
+                                        ), 2)
+        button_layout.add_widget(Button("[Quit <ESC>]",
+                                        self._quit,
+                                        add_box=False
+                                        ), 3)
         self._populate()
         self.fix()
 
@@ -261,7 +270,9 @@ class RestView(Frame):
                     Screen.KEY_F2: self._history,
                     Screen.KEY_F3: self._send,
                 }
-                if event.key_code == Screen.KEY_TAB:
+                if event.key_code in function_key_map.keys():
+                    function_key_map[event.key_code]()
+                elif event.key_code == Screen.KEY_TAB:
                     # Move on to next widget.
                     self._layouts[self._focus].blur()
                     self._find_next_tab_stop(1)
@@ -281,8 +292,6 @@ class RestView(Frame):
                     # Move on to nearest vertical widget in the next Layout
                     self._switch_to_nearest_vertical_widget(-1)
                     old_event = None
-                elif event.key_code in function_key_map.keys():
-                    function_key_map[event.key_code]()
             elif isinstance(event, MouseEvent):
                 # Give layouts/widgets first dibs on the mouse message.
                 for layout in self._layouts:
@@ -298,47 +307,6 @@ class RestView(Frame):
         # calculated when taking te focus) or if the Frame is modal or we handled the
         # event.
         return None if claimed_focus or self._is_modal or event is None else old_event
-
-    def _switch_to_nearest_vertical_widget(self, direction):
-        """
-        Find the nearest widget above or below the current widget with the focus.
-
-        This should only be called by the Frame when normal Layout navigation fails and so this needs to find
-        the nearest widget in the next available Layout.  It will not search the existing Layout for a closer
-        match.
-
-        :param direction: The direction to move through the Layouts.
-        """
-        current_widget = self._layouts[self._focus].get_current_widget()
-        focus = self._focus
-        focus += direction
-        while self._focus != focus:
-            if focus < 0:
-                focus = len(self._layouts) - 1
-            if focus >= len(self._layouts):
-                focus = 0
-            match = self._layouts[focus].get_nearest_widget(current_widget, direction)
-            if match:
-                self.switch_focus(self._layouts[focus], match[1], match[2])
-                return
-            focus += direction
-
-    def _find_next_tab_stop(self, direction):
-        old_focus = self._focus
-        self._focus += direction
-        while self._focus != old_focus:
-            if self._focus < 0:
-                self._focus = len(self._layouts) - 1
-            if self._focus >= len(self._layouts):
-                self._focus = 0
-            try:
-                if direction > 0:
-                    self._layouts[self._focus].focus(force_first=True)
-                else:
-                    self._layouts[self._focus].focus(force_last=True)
-                break
-            except IndexError:
-                self._focus += direction
 
 def custom_auth(library, *args):
     """Imports and runs 'library'"""

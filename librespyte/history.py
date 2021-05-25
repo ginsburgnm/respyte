@@ -17,6 +17,7 @@ class HistoryView(Frame):
         super(HistoryView, self).__init__(screen,
                                           screen.height,
                                           screen.width,
+                                          on_load=self._update_preview,
                                           hover_focus=True,
                                           can_scroll=False,
                                           title="Respyte")

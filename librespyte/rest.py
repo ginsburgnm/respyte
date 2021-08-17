@@ -197,6 +197,8 @@ class RestView(Frame):
             method = self.data['method'] if self.data['method'] else 'GET'
             history = {"method": method, "url": self.data['url'],
                        "data": data, "headers": headers}
+            self.response.value = ""
+            self.screen.refresh()
             req = requests.request(method,
                                    self.data['url'],
                                    data=data,

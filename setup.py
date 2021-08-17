@@ -8,7 +8,7 @@ import versioneer
 setup(
     version=versioneer.get_version(),
     install_requires=[
-        'asciimatics>=1.11.0',
+        'asciimatics>=1.13.0',
         'PyYAML>=5.4',
         'requests>=2.22.0',
         'ConfigArgParse>-1.0'
